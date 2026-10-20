@@ -187,9 +187,6 @@ def cadastrar_alunos(alunos):
 
             print("Aluno cadastrado.")
 
-        print()
-        rm = input("RM: ")
-
     gravar_todos(alunos)
 
 
@@ -364,7 +361,7 @@ def pesquisar_aluno():
         conteudo = json.load(arquivo)
         arquivo.close()
 
-        achou = Falseaad
+        achou = False
 
         for aluno in conteudo:
             if aluno["rm"] == rm:
@@ -396,6 +393,7 @@ while opcao != "0":
     print("1 - Gravar alunos")
     print("2 - Ler arquivo")
     print("3 - Pesquisa")
+    print("4 - Gravar dados no BD")
 
     opcao = input("Escolha: ")
 
@@ -408,6 +406,9 @@ while opcao != "0":
     elif opcao == "3":
         pesquisar_aluno()
 
+    elif opcao == "4":
+        print("WIP")
+        
     elif opcao == "0":
         print("Programa encerrado.")
 
