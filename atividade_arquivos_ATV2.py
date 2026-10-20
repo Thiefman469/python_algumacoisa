@@ -1,6 +1,23 @@
 import json
 import os
+import oracledb
 from openpyxl import Workbook, load_workbook
+import pandas as pd
+os.system("cls")
+try:
+    conn = oracledb.connect(user = "rm572510", password = "181207", dsn='oracle.fiap.com.br:1521/ORCL' )
+    # Cursor: onde serão aplicadas as nstruções SQL
+    inst_cadastro = conn.cursor()
+    inst_consulta = conn.cursor()
+    inst_alteracao = conn.cursor()
+    inst_exclusao = conn.cursor()
+except Exception as e:
+    # informa um eventual erro
+    print("Erro: ", e)
+    conexao = False # falha
+else:
+    # Flag para conexao ok
+    conexao = True # ok
 
 
 # CALCULAR A MÉDIA DAS CPs (desconsiderando a menor nota)
@@ -376,6 +393,9 @@ def pesquisar_aluno():
         print("Cadastre pelo menos um aluno antes de tentar pesquisar.")
 
     print("------------------------------")
+
+# CRUD SQL
+
 
 
 # PROGRAMA PRINCIPAL
