@@ -460,13 +460,13 @@ def acesso_sql():
                 # Criando um Dataframe (gera uma planilha com os dados)
                 dados_df = pd.DataFrame(
                     lista_dados,
-                    columns=['rm_alunoss','NOME','CP1','CP2','CP3']
+                    columns=['rm_alunoss', 'NOME', 'CP1', 'CP2', 'CP3']
                 )
 
                 print(dados_df.to_string(index=False))
 
                 input("\nDados listados! Aperte ENTER para sair")
-                
+
             case 3:  # Editar os alunos
                 try:
                     print("----- EDITANDO DADOS DO ALUNO -----")
@@ -597,6 +597,7 @@ while opcao != "0":
     print("2 - Ler arquivo")
     print("3 - Pesquisa")
     print("4 - Gravar dados no BD")
+    print("5 - Lista de aprovados/reprovados.")
 
     opcao = input("Escolha: ")
 
@@ -611,6 +612,9 @@ while opcao != "0":
 
     elif opcao == "4":
         acesso_sql()
+
+    elif opcao == "5":
+        print("WIP")
 
     elif opcao == "0":
         print("Programa encerrado.")
