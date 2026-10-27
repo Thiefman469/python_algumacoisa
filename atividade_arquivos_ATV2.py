@@ -5,7 +5,8 @@ from openpyxl import Workbook, load_workbook
 import pandas as pd
 os.system("cls")
 try:
-    conn = oracledb.connect(user = "rm572510", password = "181207", dsn='oracle.fiap.com.br:1521/ORCL' )
+    conn = oracledb.connect(
+        user="rm572510", password="181207", dsn='oracle.fiap.com.br:1521/ORCL')
     # Cursor: onde serão aplicadas as nstruções SQL
     inst_cadastro = conn.cursor()
     inst_consulta = conn.cursor()
@@ -14,10 +15,10 @@ try:
 except Exception as e:
     # informa um eventual erro
     print("Erro: ", e)
-    conexao = False # falha
+    conexao = False  # falha
 else:
     # Flag para conexao ok
-    conexao = True # ok
+    conexao = True  # ok
 
 
 # CALCULAR A MÉDIA DAS CPs (desconsiderando a menor nota)
@@ -397,9 +398,207 @@ def pesquisar_aluno():
 # CRUD SQL
 
 
+def acesso_sql():
+    while conexao:
+        os.system("cls")
+        print("""
+        ------ CRUD - GRAVAÇÃO BD ------
+        0 - SAIR
+        1 - CADASTRAR ALUNOS
+        2 - LISTAR ALUNOS
+        3 - EDITAR ALUNOS
+        4 - EXCLUIR ALUNOS
+        5 - EXCLUIR TODOS OS ALUNOS
+        """)
+        escolha = int(input("Escolha: "))
+
+        os.system("cls")
+
+        match escolha:
+            case 0:
+                break
+            case 1:  # Cadastrar alunos
+                try:
+                    print("----- CADASTRAR ALUNOS -----")
+                    rm_alunos = input("RM do aluno.....: ")
+                    nome = input("Nome.....: ")
+                    cp1: int = int(input("CP1.....: "))
+                    cp2: int = int(input("CP2.....: "))
+                    cp3: int = int(input("CP3.....: "))
+
+                    # montar a instrução SQL de cadastro
+                    cadastro = f"""
+                    INSERT INTO alunos
+                    (rm_aluno, NOME, CP1, CP2, CP3)
+                    VALUES ('{rm_alunos}','{nome}', {cp1}, {cp2}, {cp3})
+                    """
+
+                    inst_cadastro.execute(cadastro)
+                    conn.commit()
+                except Exception as e:
+                    print("Erro: ", e)
+                else:
+                    input("\n### DADOS GRAVADOS COM SUCESSO ###")
+
+            case 2:  # listar os alunos
+                print("----- LISTAR ALUNOS -----")
+                lista_dados = []
+
+                # montar a instrução de consulta
+                inst_consulta.execute("SELECT * FROM alunos")
+                data = inst_consulta.fetchall()  # joga todos os dados
+
+                if data:  # há dados no objeto data
+                    for dt in data:
+                        lista_dados.append(dt)
+                else:  # Não retornou registros
+                    input("Tabela vazia! Aperte ENTER para continuar")
+
+                # ordenar a lista
+                lista_dados.sort()
+
+                # Criando um Dataframe (gera uma planilha com os dados)
+                dados_df = pd.DataFrame(
+                    lista_dados,
+                    columns=[
+                        'rm_alunos',
+                        'NOME',
+                        'CP1',
+                        'CP2',
+                        'CP3'
+                    ]
+                )
+
+                print(
+                    dados_df.to_string(
+                        index=False,
+                        col_space={
+                            "RM": 5,
+                            "NOME": 30,
+                            "CP1": 5,
+                            "CP2": 5,
+                            "CP3": 5
+                        }
+                    )
+                )
+
+                input("\nDados listados! Aperte ENTER para sair")
+            case 3:  # Editar os alunos
+                try:
+                    print("----- EDITANDO DADOS DO ALUNO -----")
+                    consulta = """
+                    SELECT rm_alunos, NOME
+                    FROM alunos
+                    ORDER BY rm_alunos
+                    """
+
+                    inst_consulta.execute(consulta)
+
+                    data = inst_consulta.fetchall()
+
+                    if not data:
+                        input("A tabela está vazia! Aperte Enter para continuar")
+                        continue
+
+                    dados_df = pd.DataFrame(
+                        data,
+                        columns=['rm_alunos', 'NOME', 'CP1', 'CP2', 'CP3']
+                    )
+
+                    print(dados_df.to_string(index=False))
+
+                    lista_dados = []
+
+                    rm_alunos = int(input("Id: "))
+
+                    consulta = f"""
+                    SELECT *
+                    FROM alunos
+                    WHERE rm_alunos = :rm
+                    """
+
+                    inst_consulta.execute(consulta, {"rm": rm_alunos})
+                    data = inst_consulta.fetchall()
+
+                    if not data:
+                        input("RM inexistente")
+                        continue
+
+                    for dt in data:
+                        lista_dados.append(dt)
+
+                    novo_rm = input("Novo RM: ")
+                    novo_nome = input("Novo Nome: ")
+                    nova_nota_CP1 = input("Nova nota CP1: ")
+                    nova_nota_CP2 = input("Nova nota CP2: ")
+                    nova_nota_CP3 = input("Nova nota CP3: ")
+
+                    # Construção da instrução de edição
+                    alteracao = f"""
+                    UPDATE alunos
+                    SET rm_alunos= :rm, 
+                        NOME= :nome,
+                        CP1= :cp1,
+                        CP2= :cp2, 
+                        CP3= :cp3
+                    WHERE rm_alunos = :rm
+                    """
+                    inst_alteracao.execute(alteracao, {
+                        "rm": novo_rm,
+                        "nome": novo_nome,
+                        "cp1": nova_nota_CP1,
+                        "cp2": nova_nota_CP2,
+                        "cp3": nova_nota_CP3,
+                        "rm": rm_alunos
+                    })
+
+                    conn.commit()
+
+                except Exception as e:
+                    conn.rollback()
+                    print("Erro: ", e)
+                else:
+                    input("\n#### DADOS ATUALIZADOS #####")
+
+            case 4:  # excluir os alunos
+                print("----- EXCLUIR ALUNO ----")
+                lista_dados = []
+
+                aluno_rm = int(input("RM:"))
+
+                consulta = f"SELECT * FROM alunos WHERE id = {aluno_rm}"
+                inst_consulta.execute(consulta)
+                data = inst_consulta.fetchall()
+
+                for dt in data:
+                    lista_dados.append(dt)
+
+                if len(lista_dados) == 0:
+                    print("Não há um aluno cadastrado com este RM")
+                else:
+                    # Criação de instrução de exclusão
+                    exclusao = f"DELETE FROM alunos WHERE id = {aluno_rm}"
+                    inst_exclusao.execute(exclusao)
+                    conn.commit()
+                    input("##### ALUNO EXCLUIDO ")
+
+            case 5:  # excluir todos os alunos
+                print("!!!!! EXCLUIR TODOS OS ALUNOS !!!!!")
+                confirma = input("Confirma a exclusão? [S]IM OU [NÃO]?")
+                if confirma.upper() == "S":
+                    try:
+                        inst_exclusao.execute("DELETE FROM alunos")
+                        conn.commit()
+                        print("Todos os alunos foram excluidos")
+                    except Exception as e:
+                        conn.rollback()
+                        print("Erro ao excluir alunos:", e)
+
+                else:
+                    print("Exclusão cancelada pelo usuário!")
+
 
 # PROGRAMA PRINCIPAL
-
 alunos = carregar_alunos()
 
 opcao = ""
@@ -427,8 +626,8 @@ while opcao != "0":
         pesquisar_aluno()
 
     elif opcao == "4":
-        print("WIP")
-        
+        acesso_sql()
+
     elif opcao == "0":
         print("Programa encerrado.")
 
