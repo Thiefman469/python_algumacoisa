@@ -460,29 +460,13 @@ def acesso_sql():
                 # Criando um Dataframe (gera uma planilha com os dados)
                 dados_df = pd.DataFrame(
                     lista_dados,
-                    columns=[
-                        'rm_alunos',
-                        'NOME',
-                        'CP1',
-                        'CP2',
-                        'CP3'
-                    ]
+                    columns=['rm_alunoss','NOME','CP1','CP2','CP3']
                 )
 
-                print(
-                    dados_df.to_string(
-                        index=False,
-                        col_space={
-                            "RM": 5,
-                            "NOME": 30,
-                            "CP1": 5,
-                            "CP2": 5,
-                            "CP3": 5
-                        }
-                    )
-                )
+                print(dados_df.to_string(index=False))
 
                 input("\nDados listados! Aperte ENTER para sair")
+                
             case 3:  # Editar os alunos
                 try:
                     print("----- EDITANDO DADOS DO ALUNO -----")
