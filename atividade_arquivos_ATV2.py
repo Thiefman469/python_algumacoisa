@@ -581,6 +581,87 @@ def acesso_sql():
                 else:
                     print("Exclusão cancelada pelo usuário!")
 
+# 5 - Listagem com filtro
+
+def mostrar_tabela(titulo, lista):
+    print()
+    print(titulo)
+    print(f"{'RM':<16}{'NOME':<30}{'CP1':>6}{'CP2':>6}{'CP3':>6}{'MÉDIA':>8}")
+
+    for aluno in lista:
+        rm = aluno[0]
+        nome = aluno [1]
+        cp1 = aluno[2]
+        cp2 = aluno[3]
+        cp3 = aluno[4]
+        media = aluno[5]
+
+        print(f"{rm:<16}{nome:<30}{cp1:>6.1f}{cp2:>6.1f}{cp3:>6.1f}{media:>8.2f}")
+
+    print("Total de alunos encontrados:", len(lista))
+
+
+def listar_com_filtro():
+    print()
+    print("------------------------")
+    print("LISTAGEM COM FILTRO")
+    print("a - Aprovados")
+    print("b - Reprovados")
+    print("c - Todos")
+
+    escolha = input("Escolha: ").strip().lower()
+
+    consulta = """
+        SELECT rm_aluno, NOME, CP1, CP2, CP3,
+               ROUND((cp1 + cp2 + cp3) / 3, 2) AS media
+        FROM alunos 
+    """
+
+    if escolha == "a":
+        titulo = "ALUNOS APROVADOS"
+        consulta = consulta + " WHERE (cp1 + cp2 + cp3) / 3 >= 6"
+    elif escolha == "b":
+        titulo = "ALUNOS REPROVADOS"
+        consulta = consulta + " WHERE (cp1 + cp2 + cp3) / 3 < 6"
+    elif escolha == "c":
+        titulo = "TODOS OS ALUNOS"
+    else: 
+        print("Opção inválida. Escolha a, b ou c.")
+        print("------------------------")
+        return
+
+    consulta = consulta + " ORDER BY nome"
+
+    try:
+        conexao = oracledb.connect(user="rm572510", password="181207", dsn='oracle.fiap.com.br:1521/ORCL')
+    except oracledb.DatabaseError as erro:
+        print("Não foi possível conectar ao Oracle.")
+        print("Confira usuário, senha e DSN no começo do código.")
+        print("Erro:", erro)
+        print("------------------------")
+        return
+
+    cursor = conexao.cursor()
+
+    try:
+        cursor.execute(consulta)
+        lista = cursor.fetchall()
+
+        if not lista:
+            print()
+            print(titulo)
+            print("Nenhum registro encontrado para o critério escolhido.")
+        else:
+            mostrar_tabela(titulo, lista)
+    except oracledb.DatabaseError as erro:
+        print("Erro ao consultar a tabela ALUNOS.")
+        print("Já existe a tabela ALUNOS no Oracle? Use a opção 4 ou rode o arquivo .sql.")
+        print("Erro:", erro)
+
+    cursor.close()
+    conexao.close()
+
+    print("------------------------")
 
 # PROGRAMA PRINCIPAL
 alunos = carregar_alunos()
@@ -614,7 +695,7 @@ while opcao != "0":
         acesso_sql()
 
     elif opcao == "5":
-        print("WIP")
+        listar_com_filtro()
 
     elif opcao == "0":
         print("Programa encerrado.")
